@@ -1,0 +1,17 @@
+{
+  "name": "npm-sbom-vuln-demo",
+  "version": "1.0.0",
+  "description": "Sample npm project with pinned dependencies containing known vulnerabilities that are fixable with minor/patch upgrades. Intended for exercising SBOM generation and vulnerability scanning tooling.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "4.17.15",
+    "minimist": "1.2.5",
+    "axios": "0.21.1",
+    "qs": "6.5.2",
+    "node-fetch": "2.6.0"
+  }
+}
