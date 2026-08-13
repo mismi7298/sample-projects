@@ -1,44 +1,40 @@
-# npm-sbom-vuln-demo
+# maven-sbom-vuln-demo
 
-A small Node.js project for exercising SBOM generation and vulnerability
-scanning tools. Its `package.json` pins five dependencies to versions with
-known, publicly disclosed vulnerabilities — each one fixable by upgrading to
-a later version **without a semver-major bump** (confirmed via
-`npm audit --json`, `fixAvailable.isSemVerMajor: false` for all five).
+A small Maven/Java project for exercising SBOM generation and vulnerability
+scanning tools. Its `pom.xml` pins five dependencies, three of which have
+known, publicly disclosed vulnerabilities at the pinned version; the other
+two are clean.
 
-## Dependencies and known vulnerabilities
+## Dependencies
 
-| Package     | Installed | Issue                                              | Severity | Fixed in | Bump  |
-|-------------|-----------|-----------------------------------------------------|----------|----------|-------|
-| lodash      | 4.17.15   | Prototype pollution (CVE-2020-8203), command injection in `template` (CVE-2021-23337) | high | 4.18.1 | patch |
-| minimist    | 1.2.5     | Prototype pollution (CVE-2021-44906)                | critical | 1.2.8    | patch |
-| axios       | 0.21.1    | ReDoS (CVE-2021-3749) and related 0.21.x issues     | high     | 0.21.4   | patch |
-| qs          | 6.5.2     | Prototype pollution (CVE-2022-24999)                | high     | 6.15.3   | patch |
-| node-fetch  | 2.6.0     | Exposure of sensitive info via redirect (CVE-2022-0235) | high | 2.7.0    | patch |
+| Dependency                          | Version | Status     | Issue                                                              | Severity | Fixed in |
+|--------------------------------------|---------|------------|---------------------------------------------------------------------|----------|----------|
+| org.apache.logging.log4j:log4j-core  | 2.14.1  | vulnerable | "Log4Shell" RCE via JNDI lookups (CVE-2021-44228), plus CVE-2021-45046, CVE-2021-45105 | critical | 2.17.1   |
+| commons-collections:commons-collections | 3.2.1 | vulnerable | Unsafe deserialization via `InvokerTransformer`, RCE (CVE-2015-6420) | critical | 3.2.2    |
+| org.apache.commons:commons-text      | 1.9     | vulnerable | "Text4Shell" RCE via `StringSubstitutor` script/url/dns interpolation (CVE-2022-42889) | critical | 1.10.0   |
+| org.apache.commons:commons-lang3     | 3.12.0  | clean      | —                                                                    | —        | —        |
+| com.google.code.gson:gson            | 2.8.9   | clean      | —                                                                    | —        | —        |
+
+All three fixes are same-line upgrades (no groupId/artifactId change).
 
 ## Usage
 
 ```bash
-npm install
-npm start          # runs index.js, which exercises each dependency
-npm audit          # see the vulnerability report
-npm audit fix      # applies the patch-level upgrades above
+mvn compile
+mvn exec:java -Dexec.mainClass="com.example.sbomdemo.App"
 ```
 
 ## Generating an SBOM
 
-Any standard Node/npm SBOM tool works against this repo's `package.json` /
-`package-lock.json`, e.g.:
-
 ```bash
-# CycloneDX
-npx @cyclonedx/cyclonedx-npm --output-file sbom.cdx.json
+# CycloneDX Maven plugin
+mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
 
-# Syft
-syft dir:. -o cyclonedx-json > sbom.cdx.json
-syft dir:. -o spdx-json > sbom.spdx.json
+# OWASP dependency-check
+mvn org.owasp:dependency-check-maven:check
 ```
 
-The generated SBOM can then be fed into a vulnerability scanner (e.g. Grype,
-Trivy, `osv-scanner`) to confirm the findings above and validate that
-re-running the scan after `npm audit fix` shows them resolved.
+Feed the generated SBOM (`target/bom.xml` / `target/bom.json`, or the
+dependency-check report) into a scanner such as Grype, Trivy, or
+`osv-scanner` to confirm the findings above, then bump the three vulnerable
+dependencies to their fixed versions and re-scan to verify they clear.
