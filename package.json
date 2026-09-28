@@ -9,7 +9,7 @@
   "license": "MIT",
   "dependencies": {
     "lodash": "4.17.15",
-    "minimist": "1.2.5",
+    "minimist": "1.2.8",
     "axios": "0.21.1",
     "qs": "6.5.2",
     "node-fetch": "2.6.0"
